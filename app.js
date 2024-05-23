@@ -3,7 +3,7 @@
 // const wrapAsync = require("./utils/wrapAsync.js");
 // const Listing = require("./models/listing.js");
 
-if(process.env.NODE_ENV != "production"){
+if (process.env.NODE_ENV != "production") {
     require("dotenv").config();
 }
 const express = require("express");
@@ -31,33 +31,33 @@ const { date } = require("joi");
 const dbUrl = process.env.ATLASDB_URL;
 
 
-main().then(()=>{
+main().then(() => {
     console.log("Connected to database");
-}).catch((err)=>{
+}).catch((err) => {
     console.log(err);
 })
 
-async function main(){
+async function main() {
     await mongoose.connect(dbUrl);
 }
 
-app.set("view engine","ejs");
-app.set("views",path.join(__dirname,"views"));
-app.use(express.urlencoded({extended: true}));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.engine('ejs', ejsMate);
-app.use(express.static(path.join(__dirname,"/public")));
+app.use(express.static(path.join(__dirname, "/public")));
 
 
 const store = MongoStore.create({
     mongoUrl: dbUrl,
-    crypto:{
+    crypto: {
         secret: process.env.SECRET
     },
     touchAfter: 24 * 3600,
 });
 
-store.on("error", (err)=>{
+store.on("error", (err) => {
     console.log("ERROR IN MONGO SESSION STORE", err);
 });
 
@@ -89,10 +89,10 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app.use((req,res,next)=>{
+app.use((req, res, next) => {
     res.locals.success = req.flash("success");
     res.locals.failed = req.flash("failed");
-    res.locals.currUser = req.user;
+    res.locals.currUser = req.user || null;
     // console.log(res.locals.success);
     next();
 });
@@ -113,19 +113,19 @@ app.use("/listings/:id/reviews/", reviewsRouter);
 app.use("/", userRouter);
 
 
-app.all("*",(req,res,next)=>{
+app.all("*", (req, res, next) => {
     next(new ExpressError(404, "Page Not Found!"));
 })
 
-app.use((err, req,res,next) => {
-    let {statusCode=500, message="Something went wrong!"} = err;
-    res.render("listings/error.ejs",{statusCode,message});
+app.use((err, req, res, next) => {
+    let { statusCode = 500, message = "Something went wrong!" } = err;
+    res.render("listings/error.ejs", { statusCode, message });
 
     // res.status(statusCode).send(message);
     // res.send("Something Went Wrong!");
 });
 
-app.listen(8080,()=>{
+app.listen(8080, () => {
     console.log("server is listening to port 8080");
 });
 
